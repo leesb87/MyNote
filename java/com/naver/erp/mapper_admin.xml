@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그 선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포하고 있다. -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<mapper namespace="com.naver.erp.AdminDAO">
+ <!--*****************************************************-->
+   <!--회목 록록 글 목록 구할 때 사용할 where 절을 sql 태그 안에 선언하기 -->
+   <!--*****************************************************-->    
+    <sql id="user_infoWhere">
+        <!--=================================================-->
+		<!--만약 키워드가 null 이 아니고 길이가 0보다 크면 where 절에 참여하기-->      
+		<!--=================================================-->
+		<if test="main_keyword!=null and main_keyword.length()>0  and content_keyword!=null and content_keyword.length>0" >
+		  and
+	         <!--==================================================================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '전체' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('전체')">					
+				 (
+				   upper(u1.user_id)        like upper('%${main_keyword}%')
+				    or upper(u1.user_name)  like upper('%${main_keyword}%')			   
+					or upper(u1.addr)       like upper('%${main_keyword}%')
+					or upper(u1.jumin_num)  like upper('%${main_keyword}%')   
+	                or upper(u1.email)      like upper('%${main_keyword}%') 
+	                or upper(u1.tel_num)    like upper('%${main_keyword}%')
+	                or to_char(u1.reg_date,'YYYY-MM-DD') like upper('%${main_keyword}%')  	                 
+				 ) 
+				 </if>
+			 <!--=================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '회원ID' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('회원ID')">								
+				   upper(u1.user_id)    like upper('%${main_keyword}%')				   
+				 </if>
+			 <!--=================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '이름' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('이름')">								
+				   upper(u1.user_name)  like upper('%${main_keyword}%')				   
+				 </if>	
+			 <!--=================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '주소' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('주소')">								
+				   upper(u1.addr)       like upper('%${main_keyword}%')				   
+				 </if>	 
+			 <!--=================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '이메일' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('이메일')">								
+				   upper(u1.email)      like upper('%${main_keyword}%') 			   
+				 </if>
+		     <!--=================================================-->
+			 <!--만약 AdminSearchDTO 객체의 속성변수 content_keyword 에  문자열 '전화번호' 이 들어오면   -->      
+		     <!--=================================================-->  	                            
+                <if test="content_keyword.equals('전화번호')">								
+				   upper(u1.tel_num)    like upper('%${main_keyword}%')				   
+				 </if>	 	 	  	                                           
+	    </if>
+     <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	 <!--만약 AdminSearchDTO 객체의 속성변수 gender 가 null 이 아니고 배열변수의 개수가  0보다 크면-->      
+	 <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+          <if test="gender!=null and gender.length>0">               
+           and        
+	        <foreach collection="gender" item="gender" open="("  separator=" or " close=")">
+            <!--=================================================-->
+			<!--만약 BoardSearthDTO 객체의 속성변수 "gender" 에 문자열 "남자" 이 저장되어 있으면-->      
+			<!--=================================================-->				
+	            <if test="gender.equals('남자')">
+	              case when substr(u1.jumin_num,8,1) in ('1','3')  then '남자' else  '여자'  end   = '남자'
+	            </if>
+            <!--=================================================-->
+			<!--만약 BoardSearthDTO 객체의 속성변수 date 에 문자열 "여자" 이 저장되어 있으면-->      
+			<!--=================================================-->
+	             <if test="gender.equals('여자')">
+	               case when substr(u1.jumin_num,8,1) in ('1','3')  then '남자' else  '여자'  end   = '여자' 
+	            </if>
+            
+	        </foreach>  
+	         </if>   
+     <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	 <!--만약 AdminSearchDTO 객체의 속성변수 addr 가 null 이 아니고 배열변수의 개수가  0보다 크면-->      
+     <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm--> 
+		          <if test="addr!=null and addr.length()>0">               
+		           and        
+			           upper(u1.addr)  like upper('%${addr}%')     	      
+			      </if>      
+     <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	 <!--만약 AdminSearchDTO 객체의 속성변수 gender 가 null 이 아니고 배열변수의 개수가  0보다 크면-->      
+	 <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  
+          <if test="age_group!=null and age_group.length>0">               
+             and        
+		        <foreach collection="age_group" item="age_group" open="("  separator=" or " close=")">
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 age_group 에 문자열 10이 들어오면 [20대 미만]-->      
+			    <!--=================================================-->  
+		             <if test="age_group.equals('10')">
+		                <![CDATA[
+		                to_char(floor((extract( year from sysdate)
+	                      -
+	                    to_number(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,2))+1)*0.1)||0)   < '20'
+	                     ]]> 
+		             </if>
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 age_group 에 문자열 20이 들어오면 즉 [20대 이상] -->      
+			    <!--=================================================-->  
+		             <if test="age_group.equals('20')">
+		             <![CDATA[
+		                to_char(floor((extract( year from sysdate)
+	                      -
+	                    to_number(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,2))+1)*0.1)||0)  between '20' and '29'
+	                     ]]> 
+		             </if>
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 age_group 에 문자열 30이 들어오면 [30~40대]-->      
+			    <!--=================================================-->  
+		             <if test="age_group.equals('30')">
+		                to_char(floor((extract( year from sysdate)
+	                      -
+	                    to_number(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,2))+1)*0.1)||0)   between '30' and '49'
+		             </if>
+	            <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 age_group 에 문자열 40이 들어오면 [50대 이상]-->      
+			    <!--=================================================-->  
+		             <if test="age_group.equals('50')">
+		                to_char(floor((extract( year from sysdate)
+	                      -
+	                    to_number(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,2))+1)*0.1)||0)  >= '50'
+		             </if>
+		       </foreach>        
+	     </if>
+		    <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 date, range 가 null 이 아니고 배열변수의 개수가  0보다 크면-->  
+			<!--<주의> DTO 객체에 String 속성변수는  equals로 해야한다.     -->    
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="date!=null and date.length>0 and range!=null and range.length>0">    
+	              and 
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('오늘') and range.equals('당일')">	
+					   to_number(to_char(sysdate, 'YYYYMMDD'))	 = 	to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+				    </if>
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('오늘') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate, 'YYYYMMDD')) > to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	           	              
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('오늘') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate, 'YYYYMMDD')) < to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	  
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('어제') and range.equals('당일')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) = to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('어제') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) > to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('어제') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) < to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '7일전' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('7일전') and range.equals('당일')">	
+	                   <![CDATA[				  
+				 	  to_number(to_char(sysdate-7, 'YYYYMMDD'))	 =  to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '7일전' , range 에  문자열 '이전' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('7일전') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-7, 'YYYYMMDD')) > to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '7일전' , range 에  문자열 '이후' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('7일전') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-7, 'YYYYMMDD')) < to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '15일전' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('15일전') and range.equals('당일')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) = to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '15일전' , range 에  문자열 '이전' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('15일전') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) > to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 date 에 문자열 '15일전' , range 에  문자열 '이후' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="date.equals('15일전') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) < to_number(to_char(u1.reg_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	             
+	             </if>
+	        <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 rege_beginDay, rege_endDay 가 null 이 아니고 배열변수의 개수가  0보다 크면--> 
+			<!--가입일 상세 보기 -->  
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="begin_regDate_year!=null and begin_regDate_year.length>0 and begin_regDate_month!=null and begin_regDate_month.length>0     
+	                         and end_regDate_year!=null and end_regDate_year.length>0  and end_regDate_month!=null and end_regDate_month.length>0">    
+	              and  
+	                  <![CDATA[				  
+					   to_number(to_char(u1.reg_date,'yyyymm')) >= to_number(to_char(to_date('${begin_regDate_year+begin_regDate_month}','YYYYMM'),'yyyymm'))
+                       and
+                        to_number(to_char(u1.reg_date,'yyyymm')) <= to_number(to_char(to_date('${end_regDate_year+end_regDate_month}','YYYYMM'),'yyyymm'))
+					   ]]>    
+	            </if>
+	        <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 birth_beginDay!=null, birth_endDay!=null 가 null 이 아니고 배열변수의 개수가  0보다 크면--> 
+			<!-- 생년월일 상세 보기 -->  
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="begin_birth_year!=null and begin_birth_year.length>0 and begin_birth_month!=null and begin_birth_month.length>0     
+	                         and end_birth_year!=null and end_birth_year.length>0  and end_birth_month!=null and end_birth_month.length>0">    
+	              and  
+	                  <![CDATA[				  
+					  to_number(to_char(to_date(decode(substr(jumin_num,8,1),'1','19','2','19','20')||substr(jumin_num,1,4),'yyyymm'),'yyyymm')) 
+					  >= 
+					  to_number(to_char(to_date('${begin_birth_year+begin_birth_month}','YYYYMM'),'yyyymm'))
+                     
+                      and
+                  
+                      to_number(to_char(to_date(decode(substr(jumin_num,8,1),'1','19','2','19','20')||substr(jumin_num,1,4),'yyyymm'),'yyyymm'))     
+                      <=  
+                      to_number(to_char(to_date('${end_birth_year+end_birth_month}','YYYYMM'),'yyyymm'))
+					   ]]>    
+	            </if>
+
+	  <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	 <!--만약 AdminSearchDTO 객체의 속성변수 gender 가 null 이 아니고 배열변수의 개수가  0보다 크면-->      
+	 <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  
+          <if test="access!=null and access.length>0">               
+             and  
+                     
+		        <foreach collection="access" item="access" open="("  separator="or" close=")">
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_read_dis')">
+		                <![CDATA[
+		                     u2.acc_read='0'
+	                     ]]> 
+		             </if>
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_read')">
+		                <![CDATA[
+		                     u2.acc_read='1'
+	                     ]]> 
+		             </if>
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_upDel_dis')">
+		                <![CDATA[
+		                     u2.acc_upDel='0'
+	                     ]]> 
+		             </if>
+		         <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_upDel')">
+		                <![CDATA[
+		                     u2.acc_upDel='1'
+	                     ]]> 
+		             </if>
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_write_dis')">
+		                <![CDATA[
+		                     u2.acc_write='0'
+	                     ]]> 
+		             </if>               
+		        <!--=================================================-->
+				<!--만약 AdminSearchDTO 객체의 속성변수 access 에 문자열 10이 들어오면 -->      
+			    <!--=================================================-->  
+		             <if test="access.equals('acc_write')">
+		                <![CDATA[
+		                     u2.acc_write='1'
+	                     ]]> 
+		             </if> 
+		                    
+		       </foreach>        
+	     </if>
+	 
+	 
+	 
+
+	 
+	  </sql>   
+ 
+   <!--*****************************************************-->
+   <!-- 회원 정보 글 가져오는 select 문을 내포한  select 태그  선언 -->
+   <!--*****************************************************-->     
+         <select id='getAdminList' parameterType="com.naver.erp.AdminSearchDTO"  resultType="java.util.HashMap" >
+     select * from( select  xxx.*,rownum||'' "RNUM" from(	
+          
+              
+              select            
+	                u1.user_no||''                                    as "user_no"
+	               ,u1.user_id||''                                    as "user_id"
+	               ,u1.pwd||''                                        as "pwd" 
+	               ,u1.user_name||''                                  as "user_name" 
+	               ,u1.addr||''                                       as "addr" 
+	               ,u1.jumin_num||''	                               as "jumin_num"
+	               ,to_date(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,6),'YYYYMMDD')    as "birth_day" 
+	               ,u1.email||''                                      as "email"
+	               ,u1.tel_num||''                                    as "tel_num"
+	               ,case when substr(u1.jumin_num,8,1) in ('1','2')  then '남자' else  '여자'  end                                                   as "gender" 
+	               ,to_char(floor((extract( year from sysdate)
+                      -
+                    to_number(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,2))+1)*0.1)||0)||''    as "age_group"                             
+	               ,to_char(u1.reg_date,'YYYY-MM-DD')||''                  as "reg_date"
+	               ,u2.acc_read||''                                        as "acc_read"
+	               ,u2.acc_upDel||''                                        as "acc_upDel"
+	               ,u2.acc_write||''                                         as "acc_write"
+              from user_info u1 inner join  user_access u2 on u1.user_no = u2.user_no  
+              where 1=1
+                <!--=================================================-->
+                <!--<sql id="user_infoWhere"> 태그 안에 삽입된 SQL 구문 삽입하기-->      
+                <!--=================================================-->
+                   <include refid="user_infoWhere"/>
+                <!--=================================================-->
+                <!--만약에 BoardSearchDTO 객체 안의 속성변수 orderby 에 null 또는 "" 가 저장되어 있으면-->      
+                <!--=================================================-->
+                 <if test="orderby==null or orderby.length()==0" >       			           				              				              
+                    order by  u1.reg_date desc   
+	             </if>        
+                <!--=================================================-->
+                <!--만약에 adminSearchDTO 객체 안의 속성변수 orderby 에 null 아 아니고 그리고  문자의 길이가 저장되어 있으면-->      
+                <!--=================================================-->
+	               <if test="orderby!=null and orderby.length()>0" > 
+	                   <if test="(orderby!='jumin_num asc') and (orderby!='jumin_num desc')" > 
+	                          order by  u1.${orderby} 
+	                  </if>	                   
+                <!--=================================================-->
+	            <!--만약에 BoardSearchDTO 객체 안의 속성변수 orderby 에  'jumin_num asc' 가 저장되어 있으면-->      
+	            <!--=================================================-->	                  
+	                  <if test="orderby.equals('jumin_num asc')" >
+	                       order by to_date(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,6),'YYYYMMDD') asc	           
+              	      </if> 
+                <!--=================================================-->
+	            <!--만약에 BoardSearchDTO 객체 안의 속성변수 orderby 에  'jumin_num desc' 가 저장되어 있으면-->      
+	            <!--=================================================-->	                  
+	                  <if test="orderby.equals('jumin_num desc')" >
+	                       order by  to_date(case when substr(u1.jumin_num,8,1) in ('1','2') then '19' else '20' end||substr(u1.jumin_num,1,6),'YYYYMMDD') desc	           
+              	      </if> 
+                 </if> 
+            
+       
+         
+	          <![CDATA[
+			     )xxx where rownum <= ${selectPageNo*rowCntPerPage}) 		        
+			     where RNUM >= ${selectPageNo*rowCntPerPage-rowCntPerPage+1}
+			           ]]>              
+             
+ 
+   </select>
+
+  <!--*****************************************************-->
+  <!--[검색한 게시판 목록의 총개수]  구하는 select태그  선언 --> 
+     <!--*****************************************************--> 
+     <select id='getAdminAllCnt'  parameterType="com.naver.erp.AdminSearchDTO"   resultType="int" >
+                select 
+                     count(*) 
+                from user_info u1 inner join  user_access u2 on u1.user_no = u2.user_no
+               where 1=1                                 
+                   <!--=================================================-->
+                <!--<sql id="user_infoWhere"> 태그 안에 삽입된 SQL 구문 삽입하기-->      
+                <!--=================================================-->
+                   <include refid="user_infoWhere"/>                        		                                       
+           
+    
+        
+     </select>
+        
+
+     <update id='accessUpdate' parameterType="HashMap">
+     <if test='columnN!=null and updateV!=null'> 	
+     update user_access
+     
+     <if test='columnN.equals("acc_read")'>	
+     	set acc_read = #{updateV}
+     	    ,edit_date=sysdate
+     </if>
+     <if test='columnN.equals("acc_upDel")'>	
+     	set acc_upDel = #{updateV}
+     	     ,edit_date=sysdate
+     </if>
+     <if test='columnN.equals("acc_write")'>	
+     	set acc_write = #{updateV}
+     	     ,edit_date=sysdate
+     </if>
+     	
+        where user_no = ${user_no}
+     
+    </if>
+     </update>   
+
+         
+</mapper>
+
+
+
+
+
+
+
+
+
+
+

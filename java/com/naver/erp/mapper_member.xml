@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그 선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포하고 있다. -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<mapper namespace="com.naver.erp.MemberDAO">
+
+	<insert id='insertMember' parameterType="com.naver.erp.MemberDTO">
+		
+		insert into member(
+			m_no
+			,username
+			,userid
+			,pwd
+			,addr
+			,jumin_num
+			,reg_date
+						
+		) values (
+		
+			(select nvl(max(m_no),0)+1 from member)
+			,#{username}	
+			,#{userid}	
+			,#{pwd}		
+			,#{addr}		
+			,#{jumin_num}	
+			,sysdate
+			
+			)
+	</insert>
+
+
+<select id='verifyIdJumin' parameterType="hashmap" resultType="int">
+		select count(*) from member
+	<if test="check_for=='id_verify'">
+		where userid=#{idJuminVal}
+	</if>
+	<if test="check_for=='jumin_verify'">
+		where jumin_num=#{idJuminVal}
+	</if>	
+		
+</select>
+
+
+
+
+
+
+
+
+	
+</mapper>

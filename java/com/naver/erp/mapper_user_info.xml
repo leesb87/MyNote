@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그 선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포하고 있다. -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<mapper namespace="com.naver.erp.User_infoDAO">
+      
+   
+	<!--***************************************************-->
+	<!-- 게시판 글 입력하는 insert 문을 내포한 insert 태그 선언 -->
+	<!--***************************************************-->
+		<!-- parameterType 속성은 안에 내장된 쿼리 호출하면서 삽입되는 데이터의 자료형을 지정함. -->
+		<!-- insert 태그안에는 resultType 속성이 없다. 리턴값은 자동으로 int 형이다. -->
+		<!-- insert,update,delete 태그도 동일하다. -->
+	<insert id='insertMember' parameterType="com.naver.erp.User_infoDTO" >
+		insert into user_info(
+			user_no
+			,user_id
+			,pwd
+			,user_name
+			,addr
+			,jumin_num
+			,email
+			,tel_num
+			,reg_date						
+		) values (		
+			(select nvl(max(user_no),0)+1 from user_info)
+			,#{user_id}	
+			,#{pwd}	
+			,#{user_name}		
+			,#{addr}		
+			,#{jumin_num}
+			,#{email}
+			,#{tel_num}	
+			,sysdate			
+			)
+	</insert>
+	
+	
+		<!--***************************************************-->
+	<!-- 게시판 글 입력하는 insert 문을 내포한 insert 태그 선언 -->
+	<!--***************************************************-->
+	
+ <insert id='insertAccess' parameterType="com.naver.erp.User_infoDTO" >
+		insert into user_access values (		
+			(select nvl(max(user_no),0) from user_info  where user_id=#{user_id} and jumin_num=#{jumin_num} )
+			,sysdate
+			,'1'
+			,'0'
+			,'1'		
+			)
+	</insert>
+
+<select id='verifyIdJumin' parameterType="hashmap" resultType="int">
+	   
+	select count(*) from
+	
+	<if test="check_for=='id_verify'">
+	(
+  	  select user_id from user_info union select admin_id from admin
+    )
+	</if>
+	<if test="check_for=='name_verify'">
+	(
+      select user_name from user_info union select admin_id from admin
+    )
+	</if>
+     <if test="check_for=='jumin_verify'">
+	(
+  	select user_id from user_info 
+   
+	</if>
+	<if test="check_for!='id_verify'">
+	user_info
+	</if>
+	<if test="check_for=='id_verify'">
+		where user_id=#{idJuminVal} 
+	</if>
+    <if test="check_for=='name_verify'">
+		where user_name=#{idJuminVal} 
+	</if>
+	
+	<if test="check_for=='jumin_verify'">
+		where jumin_num=#{idJuminVal}
+		)
+	</if>	
+	<if test="check_for=='email_verify'">
+		where email=#{idJuminVal}
+	</if>	
+    <if test="check_for=='tel_verify'">
+		where tel_num=#{idJuminVal}
+	</if>	
+    
+	
+   
+</select>
+
+
+
+
+
+
+
+	
+</mapper>
+
+
+
+
+
+
+
+
+

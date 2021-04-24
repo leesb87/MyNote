@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그 선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포하고 있다. -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+
+<mapper namespace="com.naver.erp.DictDAO">
+ 
+<sql id="dictWhere">      
+    <!--=================================================-->
+	<!--만약 키워드가 null 이 아니고 길이가 0보다 크면 where 절에 참여하기-->      
+	<!--=================================================-->
+	<if test="keyword!=null and keyword.length()>0  and search_keyword!=null and search_keyword.length>0" >
+	  and
+         <foreach collection="search_keyword" item="search_keyword" open="("  separator="or" close=")">
+          
+          
+            <!--=================================================-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 search_keyword 에 문자열에 '전체선택' 이 들어오면 -->      
+		    <!--=================================================-->               
+                 <if test="search_keyword.equals('전체선택')">	             
+             	           
+				    upper(dict1.word)              like upper('%${keyword}%')			    		   
+					or upper(dict1.register)       like upper('%${keyword}%')
+					or upper(dict1.content)        like upper('%${keyword}%')					                    
+	             </if> 
+            <!--=================================================-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 search_keyword 에 문자열에 '단어' 이 들어오면 -->      
+		    <!--=================================================-->  
+	             <if test="search_keyword.equals('단어')">	                            
+				     upper(dict1.word)              like upper('%${keyword}%')			    		   					                   
+	             </if>
+            <!--=================================================-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 search_keyword 에 문자열에 '작성자' 이 들어오면 -->      
+		    <!--=================================================-->  
+	             <if test="search_keyword.equals('작성자')">	       		    		   
+				     upper(dict1.register)       like upper('%${keyword}%')
+	             </if>
+             <!--=================================================-->
+		     <!--만약 AdminSearchDTO 객체의 속성변수 search_keyword 에 문자열에 '내용' 이 들어오면 -->      
+		     <!--=================================================-->  
+	             <if test="search_keyword.equals('내용')">	       		    		   
+				     upper(dict1.content)       like upper('%${keyword}%')
+	             </if>
+  
+         </foreach>           
+     </if>
+         <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 detail_keyword, detail_search 가 null 이 아니고 배열변수의 개수가  0보다 크면-->  
+			<!--<주의> DTO 객체에 String 속성변수는  equals로 해야한다.     -->    
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="detail_keyword!=null and detail_keyword.length>0 and detail_search!=null and detail_search.length>0"> 
+                      and
+            <!--=================================================-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 detail_search 에 문자열에 '단어' 이 들어오면 -->      
+		    <!--=================================================-->  
+	             <if test="detail_search.equals('단어')">	                            
+				     upper(dict1.word)    like upper('%${detail_keyword}%')			    		   					                   
+	             </if>
+             <!--=================================================-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 detail_search 에 문자열에 '작성자' 이 들어오면 -->      
+		    <!--=================================================-->  
+	             <if test="detail_search.equals('작성자')">	       		    		   
+				     upper(dict1.register)       like upper('%${detail_keyword}%')
+	             </if>
+             <!--=================================================-->
+		     <!--만약 AdminSearchDTO 객체의 속성변수 searchdetail_search_keyword 에 문자열에 '내용' 이 들어오면 -->      
+		     <!--=================================================-->  
+	             <if test="detail_search.equals('내용')">	       		    		   
+				     upper(dict1.content)       like upper('%${detail_keyword}%')
+	             </if>
+            
+
+                  </if>
+	    <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수 search_date, range 가 null 이 아니고 배열변수의 개수가  0보다 크면-->  
+			<!--<주의> DTO 객체에 String 속성변수는  equals로 해야한다.     -->    
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="search_date !=null and search_date.length>0 and range!=null and range.length>0">    
+	              and 
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('오늘') and range.equals('당일')">	
+					   to_number(to_char(sysdate, 'YYYYMMDD'))	 = 	to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+				    </if>
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('오늘') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate, 'YYYYMMDD')) > to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	           	              
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('오늘') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate, 'YYYYMMDD')) < to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	  
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('어제') and range.equals('당일')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) = to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('어제') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) > to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '오늘' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('어제') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-1, 'YYYYMMDD')) < to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '7일전' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('7일전') and range.equals('당일')">	
+	                   <![CDATA[				  
+				 	  to_number(to_char(sysdate-7, 'YYYYMMDD'))	 =  to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '7일전' , range 에  문자열 '이전' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('7일전') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-7, 'YYYYMMDD')) > to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '7일전' , range 에  문자열 '이후' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('7일전') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-7, 'YYYYMMDD')) < to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--==================================================================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '15일전' , range 에  문자열 '당일' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('15일전') and range.equals('당일')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) = to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '15일전' , range 에  문자열 '이전' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('15일전') and range.equals('이전')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) > to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	
+	             <!--=================================================-->
+				 <!--만약 AdminSearchDTO 객체의 속성변수 search_date 에 문자열 '15일전' , range 에  문자열 '이후' 이 들어오면   -->      
+			     <!--=================================================-->  	                            
+	                <if test="search_date.equals('15일전') and range.equals('이후')">	
+	                   <![CDATA[				  
+					   to_number(to_char(sysdate-15, 'YYYYMMDD')) < to_number(to_char(dict1.input_date, 'YYYYMMDD'))
+					   ]]> 
+				    </if>	             
+	             </if>
+	
+	        <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+			<!--만약 AdminSearchDTO 객체의 속성변수begin_day, end_day 가 null 이 아니고 배열변수의 개수가  0보다 크면--> 
+			<!--가입일 상세 보기 -->  
+			<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	              <if test="begin_year!=null and begin_year.length>0 and begin_month!=null and begin_month.length>0     
+	                         and end_year!=null and end_year.length>0  and end_month!=null and end_month.length>0">    
+	              and  
+	                  <![CDATA[				  
+					   to_number(to_char(dict1.input_date,'yyyymm')) >= to_number(to_char(to_date('${begin_year+begin_month}','YYYYMM'),'yyyymm'))
+                       and
+                        to_number(to_char(dict1.input_date,'yyyymm')) <= to_number(to_char(to_date('${end_year+end_month}','YYYYMM'),'yyyymm'))
+					   ]]>    
+	            </if>
+		
+	</sql>
+
+
+
+
+
+<!-- *******<dictUpDelForm>****************************** -->
+
+<!-- <삭제관리 테이블에 행이 존재하는지를 확인하는 select태그 선언 -->
+
+<select id='checkDisabled' parameterType="com.naver.erp.DictDTO" resultType="int" >
+
+	select nvl(count(*),0) from dict_filter
+		 where lang_code=#{lang_code} and dict_no=${dict_no} and disabled=1
+
+</select>
+
+
+<!-- ++++++<lang_code에 따라 지정된 언어테이블의 꼬리글을 수정하는 select태그 선언 -->
+<update id='updateNote' parameterType="com.naver.erp.DictDTO">
+	<if test="lang_code!=null">
+		<if test='lang_code.equals("1")'>
+			update dict_kor
+		    	set content = #{content}, edit_date = sysdate, refer = #{refer}
+		    where d_kor_no = ${dict_no}
+		</if>
+		<if test='lang_code.equals("2")'>
+			update dict_eng
+		    	set content = #{content}, edit_date = sysdate, refer = #{refer}
+		    where d_eng_no = ${dict_no}
+		</if>
+		<if test='lang_code.equals("3")'>
+			update dict_jpn
+		    	set content = #{content}, edit_date = sysdate, refer = #{refer}
+		    where d_jpn_no = ${dict_no}
+		</if>
+		<if test='lang_code.equals("4")'>
+			update dict_cn
+		    	set content = #{content}, edit_date = sysdate, refer = #{refer}
+		    where d_cn_no = ${dict_no}
+		</if>
+	</if>
+	
+</update>
+
+<insert id='deleteNote' parameterType="com.naver.erp.DictDTO">
+
+insert into dict_filter values(
+  (select nvl(count(filter_no),0)+1 from dict_filter)
+  ,#{lang_code}
+  ,#{word}
+  ,${dict_no}
+  ,0
+  ,1
+)
+
+</insert>
+
+
+<!-- *******<dictList>******************************************************************************************** -->
+	<!--==================================================-->
+	<!--통합검색_게시판 검색하는 select 문을 내포한 select 태그 선언 -->
+	<!--==================================================-->
+	<select id='getDictList_total' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+		 	
+		 <if test="keyword!=null and keyword.length()>0" >  
+	<!-- 최상위 inlineView, HashMap객체로 컬럼의 데이터를 1행씩 넘겨 ArrayList객체에 넣어준다. -->
+	 	 select 
+	 	 		rnum
+	 	 		, lang_code as "lang_code"
+	 	 		, dict_no as "dict_no"
+	 	 		, note_no as "note_no"
+	 	 		, word as "word"
+	 	 		, content as "content"
+	 	 		, register as "register"
+       			, to_char(input_date, 'YYYY-MM-DD') as "input_date"
+       			, to_char(edit_date, 'YYYY-MM-DD') as "edit_date"
+       			, readcount as "readcount", refer as "refer", rate_cnt "rate_cnt", cnt as "cnt"
+       
+        from   (	<!-- 최상위 inlineView로 컬럼명을 넘기기 위해 컬렴명을 별도선언 -->
+        
+		   		 select 
+		   		 		rownum as "RNUM"
+		   		 		, l_code as "LANG_CODE"
+		   		 		, dict_no as "DICT_NO"
+		   		 		, note_no as "NOTE_NO"
+		   		 		, word as "WORD"
+		   		 		, content as "CONTENT"
+		   		 		, register as "REGISTER"
+		       			, input_date as "INPUT_DATE"
+		       			, edit_date as "EDIT_DATE"
+		       			, readcount as "READCOUNT"
+		       			, refer as "REFER"
+		       			, rate_cnt "RATE_CNT"
+		       			, cnt as "CNT"
+       
+        from (		<!-- 상위 inlineView로 컬럼명을 넘기기 위해 컬렴명을 별도선언 -->
+        
+		      	 select 
+		       			l_code as "L_CODE"
+		       			, d_kor_no as "DICT_NO"
+		       			, note_no as "NOTE_NO"
+		       			, dict_word as "WORD"
+		       			, content as "CONTENT"
+		       			, register as "REGISTER"
+		       			, input_date as "INPUT_DATE"
+		       			, edit_date as "EDIT_DATE"
+		       			, readcount as "READCOUNT"
+		       			, refer as "REFER"
+		       			, rate_cnt "RATE_CNT"
+		       			, selector1
+		       			, selector2
+		       			, cnt as "CNT" 
+		
+		from (
+                      select 
+                      		word as "DICT_WORD"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE"
+                      		, d.* 
+                      from dict_kor d
+                      where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                      union
+                      select 
+                      		word as "DICT_WORD"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE"
+                      		, d.* 
+                      from dict_eng d
+                      where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                      union
+                      select 
+                      		word as "DICT_WORD"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE"
+                      		, d.* 
+                      from dict_jpn d
+                      where d.d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled=1)
+                      union
+                      select 
+                      		word as "DICT_WORD"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                      		, (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE"
+                      		, d.* 
+                      from dict_cn d
+                      where d.d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled=1)
+                      ) dict1
+                    		<!-- ===================================================================================================== -->
+              inner join	<!-- ▲서브쿼리로 글과 lang_code를 가져온 언어테이블을 union으로 연결한 테이블 // 언어-언어코드별로 필요한 값을 group함수로 묶은 테이블▼ -->
+              				<!-- ===================================================================================================== -->
+                    (
+                    select 
+                    	word
+                    	, lang_code
+                    	, min(sysdate - input_date) as "SELECTOR1" 
+                    	, max(rate_cnt) as "SELECTOR2"
+                    	, count(*) as "CNT"
+                    from
+                   (
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d  where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d  where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d  where d.d_jpn_no not in (select dict_no from dict_filter where  lang_code='3' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d   where d.d_cn_no not in (select dict_no from dict_filter where   lang_code='4' and disabled=1)
+                    ) d
+                    group by word, lang_code having upper(word) like upper('%${keyword}%')
+                    <if test="lang_code!=null and lang_code.length()>0"> 
+				       <if test='lang_code!="0"'>
+				       	and lang_code = #{lang_code}	       
+				       </if>     
+			       </if>
+                    
+                    ) dict2
+             on dict1.word = dict2.word and dict1.lang_code = dict2.lang_code<!-- inner join 조건문 -->
+       <!-- =============================== ▼검색조건문 시작 ▼ =============================== -->
+       <!-- ==▼ 대표글 우선표시옵션에 따라 순서 변경 =============================================== -->      
+       where 1=1
+        <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+		<!--만약 dictSearchDTO 객체의 속성변수 top가 null 이 아니고 배열변수의 개수가  0보다 크면-->  
+		<!--<주의> DTO 객체에 String 속성변수는  equals로 해야한다.     -->    
+		<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	          <if test="top!=null and top.length>0"> 
+	          and
+            <!--=================================================-->
+			<!--만약 dictSearchDTO 객체의 속성변수 top 에 문자열에 [ 대표글 선정기준 가장 최신꺼 ]  이 들어오면 -->      
+		    <!--=================================================-->               
+                 <if test="top.equals('top_input_date')">	       
+                       (sysdate - dict1.input_date) = dict2.selector1 
+                 </if>    
+            <!--=================================================-->
+			<!--만약 dictSearchDTO 객체의 속성변수 top 에 문자열에 [ 대표글 성정기준 추천수 ] 이 들어오면 -->      
+		    <!--=================================================-->               
+                 <if test="top.equals('top_rate_cnt')">	       
+                        dict1.rate_cnt = dict2.selector2
+                 </if> 
+              </if>
+       
+        <!-- (sysdate - dict1.input_date) = dict2.selector1 --> 
+        <!-- 대표글 선정기준 가장 최신꺼 top_input_date -->
+        <!-- 대표글 성정기준 추천수 top_rate_cnt  -->
+        <!-- dict1.rate_cnt = dict2.selector2--> 
+       
+       <!-- =▼ 검색언어코드▼= -->
+       <if test="lang_code!=null and lang_code.length()>0"> 
+	       <if test='lang_code!="0"'>
+	       	and dict1.lang_code = #{lang_code}	       
+	       </if>     
+       </if>
+       <!-- ============== --> 
+       <include refid="dictWhere"/>
+      <!--  and upper(dict1.word) like upper('%${keyword}%') --> 
+          <if test="orderby==null or orderby.length()==0" >                                            
+            order by dict1.lang_code asc, length(dict1.word) asc, dict1.word asc
+         </if>    
+	            <!--=================================================-->
+                <!-- 정렬할 문자열-->      
+                <!--=================================================-->
+	               <if test="orderby!=null and orderby.length()>0" > 
+	                          order by  ${orderby} 
+	            <!--=================================================-->
+                <!-- 오름차순 내림차순 -->      
+                <!--=================================================-->   
+	                <if test="asc_desc!=null and asc_desc.length()>0" >   
+	                         ${asc_desc}
+	                  
+	              </if>	                   
+	            </if>	
+       
+       
+       
+    <!-- == ▼페이징 처리구문▼ == -->   
+    <![CDATA[ 
+    ) dict where rownum < = ${selectPageNo*rowCntPerPage}    
+    ) lastDict where rnum >= ${(selectPageNo-1)*rowCntPerPage+1}
+	]]>
+
+			
+	</if>	
+
+
+<!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = -->
+				 
+	</select>
+			
+	<!--==================================================-->		
+	<!-- [통합검색_검색한 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<select id="getDictListAllCnt_total" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+	
+		 <if test="keyword!=null and keyword.length()>0">  
+		 	
+  select count(*) from (
+       select * from
+                     (
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                      where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                      where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                       where d.d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                       where d.d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled=1)
+                      ) dict1
+              inner join
+                    (
+                    select word, lang_code
+                    
+                    , min(sysdate - input_date) as "SELECTOR" ,max(rate_cnt) as "TOP_RANK", count(*) as "CNT" from
+                    
+                    (
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d  where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d  where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d  where d.d_jpn_no not in (select dict_no from dict_filter where  lang_code='3' and disabled=1)
+                    union
+                    select (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d   where d.d_cn_no not in (select dict_no from dict_filter where   lang_code='4' and disabled=1)
+                    ) d
+                    group by word, lang_code having upper(word) like upper('%${keyword}%')
+                    ) dict2
+                    
+              on upper(dict1.word) = upper(dict2.word) 
+              
+              <!-- and dict1.lang_code = dict2.lang_code  -->
+              
+                 
+       where 1=1
+       <!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+		<!--만약 dictSearchDTO 객체의 속성변수 top가 null 이 아니고 배열변수의 개수가  0보다 크면-->  
+		<!--<주의> DTO 객체에 String 속성변수는  equals로 해야한다.     -->    
+		<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->  	   
+	          <if test="top!=null and top.length>0"> 
+	          and
+            <!--=================================================-->
+			<!--만약 dictSearchDTO 객체의 속성변수 top 에 문자열에 [ 대표글 선정기준 가장 최신꺼 ]  이 들어오면 -->      
+		    <!--=================================================-->               
+                 <if test="top.equals('top_input_date')">	       
+                      (sysdate - dict1.input_date) = dict2.selector
+                 </if>    
+           <!--=================================================-->
+			<!--만약 dictSearchDTO 객체의 속성변수 top 에 문자열에 [ 대표글 성정기준 추천수 ] 이 들어오면 -->      
+		    <!--=================================================-->               
+                 <if test="top.equals('top_rate_cnt')">	       
+                       dict1.rate_cnt = dict2.top_rank
+                 </if> 
+              </if>
+       <!-- (sysdate - dict1.input_date) = dict2.selector -->  
+      <!--   and    dict1.rate_cnt = dict2.top_rank  -->
+      <!-- =▼ 검색언어코드▼= -->
+       <if test="lang_code!=null and lang_code.length()>0"> 
+	       <if test='lang_code!="0"'>
+	       	and dict1.lang_code = #{lang_code}	       
+	       </if>     
+       </if>
+       <include refid="dictWhere"/>
+       <!--  and upper(dict1.word) = upper('%${keyword}%') -->
+		
+
+       <!--   and dict1.word like ('%${keyword}%')-->
+
+       order by dict1.lang_code asc, length(dict1.word) asc, dict1.word asc
+
+    )
+	</if>
+	</select>	 
+
+
+
+<!-- ===================▼▼ << MyNote >> ▼▼===================-->
+
+
+<insert id='insertMynote' parameterType="hashmap"><!-- MyNote에 새 노트를 저장하는 SQL구문 -->
+
+  insert into user_mynote values(
+    ( select nvl( max(mynote_idx),0 ) +1 from user_mynote )
+    ,( select user_no from user_info where user_id=#{user_id} )
+    ,#{lang_code}
+    ,(select nvl(max(d_kor_no),0)+1 from
+                    (
+                    select (select lang_code from note_core where word=d.word and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                    union
+                    select (select lang_code from note_core where word=d.word and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                    union
+                    select (select lang_code from note_core where word=d.word and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                    union
+                    select (select lang_code from note_core where word=d.word and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                    ) dict
+
+                    where dict.lang_code = #{lang_code} 	
+   			)
+    ,sysdate
+    ,'1'
+  )
+</insert>
+
+
+<select id='getMynote' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap">
+<if test="user_id!=null and user_id.length()>0">  
+   select
+	  rownum
+	  , lang_code as "lang_code"
+	  , dict_no as "dict_no"
+	  , note_no as "note_no"
+	  , word as "word"
+	  , content as "content"
+	  , register as "register"
+	  , input_date as "input_date"
+	  , refer as "refer"
+	  , rate_cnt as "rate_cnt"
+	  , add_date as "add_date"
+   from
+      (
+             select
+                 rownum as "RNUM", lang_code as "LANG_CODE" ,dict_no as "DICT_NO"  , note_no as "NOTE_NO"  , word as "WORD" , content as "CONTENT" , register as "REGISTER" ,input_date  as "INPUT_DATE" , refer as "REFER" ,rate_cnt as "RATE_CNT" ,add_date as "ADD_DATE"
+             from
+             
+             (
+             
+             select
+               lang_code as "LANG_CODE" , dict_no as "DICT_NO" , note_no as "NOTE_NO" , word as "WORD" , content as "CONTENT" , register as "REGISTER", to_char(input_date, 'YYYY-MM-DD') as "INPUT_DATE" , refer as "REFER" , rate_cnt as "RATE_CNT" ,add_date as "ADD_DATE"
+             from
+             
+             (
+             select 
+             	l_code as "LANG_CODE", d_kor_no as "DICT_NO"  , note_no as "NOTE_NO"  , word as "WORD" , content as "CONTENT" , register as "REGISTER" ,input_date  as "INPUT_DATE" , refer as "REFER" ,rate_cnt as "RATE_CNT" ,add_date as "ADD_DATE"
+             from
+                    (
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                        where d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled='1')
+                            and d_kor_no
+                            in (select dict_no from user_mynote where lang_code='1' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                       where d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled='1')
+                           and d_eng_no
+                            in (select dict_no from user_mynote where lang_code='2' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                       where d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled='1')
+                           and d_jpn_no
+                            in (select dict_no from user_mynote where lang_code='3' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                        where d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled='1')
+                            and d_cn_no
+                             in (select dict_no from user_mynote where lang_code='4' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    ) dict1
+
+                    inner join
+
+                    ( select * from user_mynote ) um
+
+                    on dict1.lang_code = um.lang_code and dict1.d_kor_no = um.dict_no
+
+									                <!-- =▼ 검색언어코드▼= -->
+		 
+		        <if test="lang_code!=null and lang_code.length()>0"> 
+	                 <if test='lang_code.equals("1")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if>
+	                 <if test='lang_code.equals("2")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	                 <if test='lang_code.equals("3")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	                 <if test='lang_code.equals("4")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	           </if>
+				
+					       <!-- =▼ 검색 단어 부분일치검색 ▼=-->       
+               <if test='keyword!=null and keyword.length()>0 and myNote_search!=null and myNote_search.length()>0'> 
+               <if test='myNote_search.equals("전체")'>
+	    		 	and
+	    		 	(
+	    		 	 upper(dict1.word)     like upper('%${keyword}%')		    		   
+					or upper(dict1.register)  like upper('%${keyword}%')
+					or upper(dict1.content)   like upper('%${keyword}%')
+	     		   )
+	     		   </if> 		 
+	    		 	<if test='myNote_search.equals("단어")'>
+	    		 	and upper(dict1.word) like upper('%${keyword}%')
+	     		   </if>
+	     		  <if test='myNote_search.equals("작성자")'>
+	    		 	and upper(dict1.register) like upper('%${keyword}%')
+	     		   </if>
+	     		  <if test='myNote_search.equals("내용")'>
+	    		 	and upper(dict1.content) like upper('%${keyword}%')
+	     		   </if>
+     		  </if>	
+
+                  )dict2
+
+
+				
+				<!--=================================================-->  
+               <if test="myNote_orderby==null or myNote_orderby.length()==0" >                                            
+                  order by add_date desc
+               </if>    
+	            <!--=================================================-->
+                <!-- 정렬할 문자열-->      
+                <!--=================================================-->
+	               <if test="myNote_orderby!=null and myNote_orderby.length()>0" > 
+	                          order by  ${myNote_orderby} 
+	            <!--=================================================-->
+                <!-- 오름차순 내림차순 -->      
+                <!--=================================================-->   
+	                <if test="asc_desc!=null and asc_desc.length()>0" >   
+	                         ${asc_desc}
+	                  
+	              </if>	                   
+	            </if>	
+
+
+                )dict3
+
+     
+				 <!-- == ▼페이징 처리구문▼ == -->
+				    <![CDATA[ 
+				   where rownum <= ${selectPageNo*rowCntPerPage}     
+				    ) lastDict where rnum >= ${(selectPageNo-1)*rowCntPerPage+1}
+					]]>
+
+
+
+
+
+
+</if>
+</select>
+
+<select id='getMynoteCnt' parameterType="com.naver.erp.DictSearchDTO" resultType='int'>
+<if test="user_id!=null and user_id.length()>0">  
+    select count(*) from
+             (
+             select *  from
+                    (	<!-- ************************************************************** -->
+                    	<!-- 삭제처리 테이블의 dict_no와 일치하지 않고, mynote에 등록된 dict_no와 일치하는 -->
+                    	<!-- 꼬리글들을 union된 사전 테이블들에서 select하는 쿼리문 선언 -->
+                    	<!-- ************************************************************** -->
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                        where d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled='1')
+                            and d_kor_no
+                            in (select dict_no from user_mynote where lang_code='1' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                       where d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled='1')
+                           and d_eng_no
+                            in (select dict_no from user_mynote where lang_code='2' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                       where d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled='1')
+                           and d_jpn_no
+                            in (select dict_no from user_mynote where lang_code='3' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    union
+                    select  (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "L_CODE"
+                            ,(select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                        where d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled='1')
+                            and d_cn_no
+                             in (select dict_no from user_mynote where lang_code='4' and mynote='1' and user_no = ( select user_no from user_info ui where ui.user_id = #{user_id} )   )
+                    ) dict1
+
+                    inner join
+
+                    ( select * from user_mynote ) um
+
+                    on dict1.lang_code = um.lang_code and dict1.d_kor_no = um.dict_no
+
+													                <!-- =▼ 검색언어코드▼= -->
+		 
+		        <if test="lang_code!=null and lang_code.length()>0"> 
+	                 <if test='lang_code.equals("1")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if>
+	                 <if test='lang_code.equals("2")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	                 <if test='lang_code.equals("3")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	                 <if test='lang_code.equals("4")'>  
+	                      and  dict1.lang_code = #{lang_code} 
+	                 </if> 
+	           </if>
+				
+					       <!-- =▼ 검색 단어 부분일치검색 ▼=-->       
+               <if test='keyword!=null and keyword.length()>0 and myNote_search!=null and myNote_search.length()>0'> 
+               <if test='myNote_search.equals("전체")'>
+	    		 	and
+	    		 	(
+	    		 	 upper(dict1.word)     like upper('%${keyword}%')		    		   
+					or upper(dict1.register)  like upper('%${keyword}%')
+					or upper(dict1.content)   like upper('%${keyword}%')
+	     		   )
+	     		   </if> 		 
+	    		 	<if test='myNote_search.equals("단어")'>
+	    		 	and upper(dict1.word) like upper('%${keyword}%')
+	     		   </if>
+	     		  <if test='myNote_search.equals("작성자")'>
+	    		 	and upper(dict1.register) like upper('%${keyword}%')
+	     		   </if>
+	     		  <if test='myNote_search.equals("내용")'>
+	    		 	and upper(dict1.content) like upper('%${keyword}%')
+	     		   </if>
+     		  </if>	
+
+                  )dict2
+                  </if>
+</select>
+
+<!-- //=======▼4/5 추가분===============▲상세검색 추가분 오버라이딩 요망================ -->
+
+<!-- 꼬리글의 mynote 등록여부 확인 mybatis -->
+<select id='checkMynote' parameterType="hashmap" resultType="int">
+		 select count(*) from user_mynote 
+		 	where user_no = (select user_no from user_info where user_id=#{user_id})
+	                    and lang_code=#{lang_code}
+	                    and dict_no=${dict_no}
+                        and mynote='1'
+
+</select>
+<!-- 꼬리글의 mynote 등록은 되어있으나, 그 mynote값이 0일 경우(등록취소한 경우) 다시 등록하는 mybatis -->
+<update id='updateMynote' parameterType="hashmap"><!-- MyNote에 새 노트를 저장하는 SQL구문 -->
+
+  update user_mynote set mynote='1'
+  where
+  		user_no = ( select user_no from user_info where user_id=#{user_id} )
+    	and lang_code = #{lang_code}
+    	and dict_no = ${dict_no}
+   		and mynote = '0'
+  
+</update>
+
+
+<!-- 선택된 꼬리글을 mynote에 저장하는 mybatis-->
+<insert id='doMynote' parameterType="hashmap"><!-- MyNote에 새 노트를 저장하는 SQL구문 -->
+
+  insert into user_mynote values(
+    ( select nvl( max(mynote_idx),0 ) +1 from user_mynote )
+    ,( select user_no from user_info where user_id=#{user_id} )
+    ,#{lang_code}
+    ,${dict_no}
+    ,sysdate
+    ,'1'
+  )
+</insert>
+
+
+<!-- 꼬리글의 mynote 등록을 철회하고 수정 행의 개수를 리턴하는 mybatis -->
+<update id='turnOffMynote' parameterType="hashmap"><!-- MyNote에 새 노트를 저장하는 SQL구문 -->
+
+  update user_mynote set mynote='0'
+  where
+  		user_no = ( select user_no from user_info where user_id=#{user_id} )
+    	and lang_code = #{lang_code}
+    	and dict_no = ${dict_no}
+   		and mynote = '1'
+  
+</update>
+
+
+
+
+
+<!-- ******<dictContent>************************************** -->
+
+	<!--==================================================-->
+	<!-- contentForm_ select 문을 내포한 select 태그 선언 -->
+	<!--==================================================-->
+	<select id='getDictContent' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+
+		 <if test="keyword!=null and keyword.length()>0" >  
+		 
+	<!-- 최상위 inlineView, HashMap객체로 컬럼의 데이터를 1행씩 넘겨 ArrayList객체에 넣어준다. -->
+		select rnum, lang_code as "lang_code", dict_no as "dict_no", note_no as "note_no", word as "word", content as "content", register as "register"
+       , to_char(input_date, 'YYYY-MM-DD') as "input_date", to_char(edit_date, 'YYYY-MM-DD') as "edit_date", readcount as "readcount", refer as "refer", rate_cnt "rate_cnt"
+   
+    from   (	<!-- 최상위 inlineView로 컬럼명을 넘기기 위해 컬렴명을 별도선언 -->
+		   	
+		   		 select rownum as "RNUM",lang_code as "LANG_CODE", dict_no as "DICT_NO", note_no as "NOTE_NO", word as "WORD", content as "CONTENT", register as "REGISTER"
+		       , input_date as "INPUT_DATE", edit_date as "EDIT_DATE", readcount as "READCOUNT", refer as "REFER", rate_cnt "RATE_CNT" 
+		       
+		       from (	<!-- 상위 inlineView로 컬럼명을 넘기기 위해 컬렴명을 별도선언 -->
+		    
+		    select lang_code as "LANG_CODE", d_kor_no as "DICT_NO", note_no as "NOTE_NO", dict_word as "WORD", content as "CONTENT", register as "REGISTER"
+		       , input_date as "INPUT_DATE", edit_date as "EDIT_DATE", readcount as "READCOUNT", refer as "REFER", rate_cnt "RATE_CNT"
+               
+               from	<!-- 서브쿼리로 lang_code를 가져온 언어테이블 4개를 union으로 묶은 inlineView 선언 -->
+               
+                     (
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                      where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                      where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                      where d.d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                      where d.d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled=1)
+                      ) dict1  <!-- 서브쿼리로 lang_code를 가져온 언어테이블 4개를 union으로 묶은 inlineView 선언 -->
+       <!-- =============================== ▼검색조건문 시작 ▼ =============================== -->
+       where 1=1
+       
+       
+       <!-- =▼ 검색언어코드▼= -->
+       <if test="lang_code!=null and lang_code.length()>0"> 
+	       <if test='lang_code!="0"'>
+	       	and dict1.lang_code = #{lang_code}	       
+	       </if>     
+       </if>
+       <!-- ============== --> 
+        <include refid="dictWhere"/>
+       and upper(dict1.word) = upper('${keyword}')
+                                                
+
+	   <!-- =▼ 정렬순서코드 ▼= -->
+       order by dict1.lang_code asc, length(dict1.word) asc, dict1.word asc
+       
+    <!-- == ▼페이징 처리구문▼ == -->   
+    <![CDATA[ 
+    ) dict where rownum < = ${selectPageNo*rowCntPerPage}    
+    ) lastDict where rnum >= ${(selectPageNo-1)*rowCntPerPage+1}
+	]]>
+		</if>
+	</select>
+
+	
+	<!--==================================================-->
+	<!-- contentForm의 세부검색 결과 수를 가져오는 select 태그 선언 -->
+	<!--==================================================-->
+	
+	<select id="getContentAllCnt" parameterType="com.naver.erp.DictSearchDTO" resultType="int"> 
+		<if test="keyword!=null and keyword.length()>0">  
+	
+	      select count(*) from
+                    (
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_kor d
+                      where d.d_kor_no not in (select dict_no from dict_filter where lang_code='1' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_eng d
+                      where d.d_eng_no not in (select dict_no from dict_filter where lang_code='2' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_jpn d
+                      where d.d_jpn_no not in (select dict_no from dict_filter where lang_code='3' and disabled=1)
+                      union
+                      select word as "DICT_WORD", (select lang_code from note_core where upper(word)=upper(d.word) and note_no=d.note_no) as "LANG_CODE", d.* from dict_cn d
+                      where d.d_cn_no not in (select dict_no from dict_filter where lang_code='4' and disabled=1)
+                      ) dict1
+	   <!-- =============================== ▼검색조건문 시작 ▼ =============================== -->
+       where 1=1        
+       
+       <!-- =▼ 검색언어코드▼= -->
+       <if test="lang_code!=null and lang_code.length()>0"> 
+	       <if test='lang_code!="0"'>
+	       	and dict1.lang_code = #{lang_code}	       
+	       </if>     
+       </if>
+       <!-- === ▼키워드 일치 확인구문, dict.컬럼명으로 검사한다.▼ === --> 
+      <include refid="dictWhere"/>
+         and upper(dict1.word) = upper('${keyword}') 
+                                                
+
+	   <!-- =▼ 정렬순서코드 ▼= -->
+       order by dict1.lang_code asc, length(dict1.word) asc, dict1.word asc
+	
+		 
+
+		</if>
+	</select>
+			
+<!-- ******<dictReg>****************************************** -->			
+			
+	<select id='checkWord' parameterType="hashmap" resultType="int">
+		select nvl(max(note_no),0) from note_core 
+			where upper(word)=upper(#{word})
+			 and lang_code = #{lang_code}
+	
+	</select>		<!-- lang_code는 value값이 한국어, 영어...로 되어있으므로 inlineView를 사용하여 검색한다. -->			
+	
+	
+	<insert id='insertNewCore' parameterType="com.naver.erp.DictDTO">
+	
+	  insert into note_core values(
+ 		(select nvl(max(note_no),0)+1 from note_core)
+  		,#{word}
+  		,#{lang_code}
+  		)
+	
+	</insert>
+
+ 
+
+<!-- 입력하는 lang_code에 따라 저장 언어 테이블을 c:if구문으로 지정하고 입력DTO의 데이터를 입력 -->
+<insert id='insertNewNote' parameterType="com.naver.erp.DictDTO">	
+  
+	 insert into
+	 <if test='lang_code.equals("1")'>
+	  dict_kor values(
+	  (select nvl(max(d_kor_no),0)+1 from dict_kor)
+	  </if>
+	  <if test='lang_code.equals("2")'>
+	  dict_eng values(
+	  (select nvl(max(d_eng_no),0)+1 from dict_eng)
+	  </if> 
+	  <if test='lang_code.equals("3")'>
+	  dict_jpn values(
+	  (select nvl(max(d_jpn_no),0)+1 from dict_jpn)
+	  </if>
+	  <if test='lang_code.equals("4")'>
+	  dict_cn values(
+	  (select nvl(max(d_cn_no),0)+1 from dict_cn)
+	  </if>
+	  ,(select note_no from note_core where word=#{word} )
+	  ,lower(#{word})
+	  ,#{content}
+	  ,#{register}
+	  ,sysdate
+	  ,null
+	  ,0
+	  ,#{refer}
+	  ,0
+	  )
+	 
+ 
+ 
+</insert>
+<!-- *******<recommend>관련 mybatis구문******************** -->
+
+	<!-- 추천한 흔적 찾기  -->
+	<select id="checkRecommend" parameterType="hashmap" resultType="int">
+		select count(*) from recommend
+		where user_no=(select user_no from user_info where user_id=#{user_id}) 
+		and lang_code=${lang_code} and d_no=${d_no}
+	</select> 
+	
+	<!-- 추천한 흔적 남기기  -->
+	<insert id='doRecommend' parameterType="hashmap">
+	  insert into  recommend values(
+ 		(select nvl(max(idx),0)+1 from recommend)
+  		,(select user_no from user_info where user_id=#{user_id})
+  		,${lang_code}
+  		,${d_no}
+  		,1
+  		)
+	</insert>
+	
+	<!-- 추천수 업데이트 -->
+	<update id="updateRate_cnt" parameterType="hashmap">
+		update 
+  			<if test='lang_code.equals("1")'>
+			dict_kor 
+			</if>
+  			<if test='lang_code.equals("2")'>
+			dict_eng 
+			</if>
+  			<if test='lang_code.equals("3")'>
+			dict_jpn 
+			</if>
+  			<if test='lang_code.equals("4")'>
+			dict_cn 
+			</if>
+		set rate_cnt = rate_cnt+1
+		where
+	  		<if test='lang_code.equals("1")'>
+			d_kor_no=${d_no}
+			</if>
+			<if test='lang_code.equals("2")'>
+			d_eng_no=${d_no}
+			</if>
+			<if test='lang_code.equals("3")'>
+			d_jpn_no=${d_no}
+			</if>
+			<if test='lang_code.equals("4")'>
+			d_cn_no=${d_no}
+			</if>
+	</update>
+	
+</mapper>
+<!-- 통합검색_ union view 테이블 생성하였음...! 
+	 view 테이블명은 total_dictList_vw1 입니다.  DB 에서 아래처럼 생성해주면 됩니다.
+	 	
+	 create view dictList_total_vw as
+               select
+                    d.d_kor_no                                    "D_NO"
+                    , d.word                                      "WORD"
+                    , d.content                                   "CONTENT"
+                    , d.register                                  "REGISTER"
+                    , d.input_date                                "INPUT_DATE"
+                    , d.readcount                                 "READCOUNT"
+                    , d.refer                                     "REFER"
+                    , d.rate_cnt                                  "RATE_CNT"
+                    , n.lang_code                                 "LANG_CODE"
+                from dict_kor d, note_core n
+                where d.note_no=n.note_no
+                union
+                select
+                     d.d_eng_no
+                    , d.word
+                    , d.content
+                    , d.register
+                    , d.input_date
+                    , d.readcount
+                    , d.refer
+                    , d.rate_cnt
+                    , n.lang_code
+                from dict_eng d, note_core n
+                where d.note_no=n.note_no
+                union
+                select
+                     d.d_jpn_no
+                    , d.word
+                    , d.content
+                    , d.register
+                    , d.input_date
+                    , d.readcount
+                    , d.refer
+                    , d.rate_cnt
+                    , n.lang_code
+                from dict_jpn d, note_core n
+                where d.note_no=n.note_no
+                union
+                select
+                     d.d_cn_no
+                    , d.word
+                    , d.content
+                    , d.register
+                    , d.input_date
+                    , d.readcount
+                    , d.refer
+                    , d.rate_cnt
+                    , n.lang_code
+                from dict_cn d, note_core n
+                where d.note_no=n.note_no;
+-->
+
+<!-- ======================================================================================= -->	
+	<!--==================================================-->
+	<!-- Tab 한국어_게시판 검색하는 select 문을 내포한 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id='getTabDictList_kor' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+			select				
+					d_kor_no||'' 							"d_kor_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_kor 
+				where 1=1 
+				<include refid="boardWhere"/>
+				order by  rate_cnt desc, readcount desc -->
+				
+				 <!--   select
+				         rownum||''                             "rownum"
+				        ,d_kor_no||''                           "d_kor_no"
+				        , word||''                              "word"
+				        , content||''                 			"content"
+				        , register||''							"register"
+				        , to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+				        , readcount||''							"readcount"
+				        , refer||''								"refer"
+				        , rate_cnt||''							"rate_cnt"
+				   from
+				   (select
+				       *
+				    from dict_kor
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)kor 
+				   where rownum=1 
+				
+	</select>-->
+
+	<!--==================================================-->		
+	<!-- [Tab 한국어_검색한 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+		<!-- <select id="getTabDictListAllCnt_kor" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+		select 
+				count(*) 	
+			from dict_kor 	
+			where 1=1		
+			<include refid="boardWhere"/> -->
+				 <!--  
+                   select
+				        count(*)
+				   from
+					    (select
+					       *
+					    from dict_kor
+					    where upper(word) like upper('%${keyword}%')
+					    order by rate_cnt desc, input_date desc,readcount desc)kor
+				   where rownum=1
+			
+	</select> -->	 
+	
+	<!--==================================================-->
+	<!-- Tab 영어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!--<select id='getTabDictList_eng' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+				 select						
+					d_eng_no||'' 							"d_eng_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_eng 
+				where 1=1 
+				<include refid="boardWhere"/> -->
+				<!-- order by rate_cnt desc -->
+				 
+				<!--  select
+				         rownum||''                             "rownum"
+				        ,d_eng_no||''                           "d_eng_no"
+				        , word||''                              "word"
+				        , content||''                 			"content"
+				        , register||''							"register"
+				        , to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+				        , readcount||''							"readcount"
+				        , refer||''								"refer"
+				        , rate_cnt||''							"rate_cnt"
+				   from
+				   (select
+				       *
+				    from dict_eng
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)eng 
+				   where rownum=1 
+	</select>-->
+
+	<!--==================================================-->		
+	<!-- [Tab 영어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!--<select id="getTabDictListAllCnt_eng" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			 select 
+				count(*) 	 
+			from dict_eng 
+			where 1=1		
+			<include refid="boardWhere"/> -->
+				   <!-- select
+				         count(*)
+				   from
+				     (select
+				       *
+				     from dict_eng
+				     where upper(word) like upper('%${keyword}%')
+				     order by rate_cnt desc,input_date desc,readcount desc)eng 
+				   where rownum=1 
+			
+	</select>-->	
+	
+	<!--==================================================-->
+	<!-- Tab 일본어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!--<select id='getTabDictList_jpn' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+				  select						
+					d_jpn_no||'' 							"d_jpn_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_jpn 
+				where 1=1 
+				<include refid="boardWhere"/>	 -->				
+				<!-- order by rate_cnt desc --> 
+				
+				  <!-- select
+				         rownum||''                             "rownum"
+				        ,d_jpn_no||''                           "d_jpn_no"
+				        , word||''                              "word"
+				        , content||''                 			"content"
+				        , register||''							"register"
+				        , to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+				        , readcount||''							"readcount"
+				        , refer||''								"refer"
+				        , rate_cnt||''							"rate_cnt"
+				   from
+				   (select
+				       *
+				    from dict_jpn
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)jpn 
+				   where rownum=1
+	</select> -->
+
+	<!--==================================================-->		
+	<!-- [ Tab 일본어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id="getTabDictListAllCnt_jpn" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+		 select 
+				count(*) 	
+			from dict_jpn 
+			where 1=1		
+			<include refid="boardWhere"/> 
+				   select
+				        count(*)
+				   from
+				   (select
+				       *
+				    from dict_jpn
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)jpn 
+				   where rownum=1 
+	</select>	-->
+	
+	<!--==================================================-->
+	<!-- Tab 중국어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!-- <select id='getTabDictList_cn' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+	n행n열이라도 result타입지정을 한 행이 데이터가 저장되는 HashMap을 써주어야한다.
+	 alias는 hashMap객체 안의 키값으로 저장된다. 
+				 select						
+					d_cn_no||'' 							"d_cn_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_cn 
+				where 1=1 
+				<include refid="boardWhere"/> 
+				order by rate_cnt desc
+				
+				select
+				         rownum||''                             "rownum"
+				        ,d_cn_no||''                           "d_cn_no"
+				        , word||''                              "word"
+				        , content||''                 			"content"
+				        , register||''							"register"
+				        , to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+				        , readcount||''							"readcount"
+				        , refer||''								"refer"
+				        , rate_cnt||''							"rate_cnt"
+				   from
+				   (select
+				       *
+				    from dict_cn
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)cn 
+				   where rownum=1 
+	</select>-->
+
+	<!--==================================================-->		
+	<!-- [ Tab 중국어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!--<select id="getTabDictListAllCnt_cn" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			 select 
+				count(*) 	
+			from dict_cn 
+			where 1=1		
+			<include refid="boardWhere"/> 
+			
+			  select
+				        count(*) 
+				   from
+				   (select
+				       *
+				    from dict_cn
+				    where upper(word) like upper('%${keyword}%')
+				    order by rate_cnt desc,input_date desc, readcount desc)cn 
+				   where rownum=1 
+	</select>	-->
+					
+			
+
+
+<!--==================================================-->
+	<!-- 통합검색 한국어_게시판 검색하는 select 문을 내포한 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id='getDictList_kor' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+	n행n열이라도 result타입지정을 한 행이 데이터가 저장되는 HashMap을 써주어야한다.
+	alias는 hashMap객체 안의 키값으로 저장된다.
+			select				
+					d_kor_no||'' 							"d_kor_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_kor 
+				where 1=1 
+				<include refid="boardWhere"/>
+				order by rate_cnt desc
+	</select> -->
+
+	<!--==================================================-->		
+	<!-- [통합검색 한국어_검색한 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id="getDictListAllCnt_kor" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			select 
+				count(*) 	
+			from dict_kor 	
+			where 1=1		
+			<include refid="boardWhere"/>
+	</select> -->
+	
+	<!--==================================================-->
+	<!-- 통합검색 영어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!-- <select id='getDictList_eng' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+	n행n열이라도 result타입지정을 한 행이 데이터가 저장되는 HashMap을 써주어야한다.
+	alias는 hashMap객체 안의 키값으로 저장된다.
+				select						
+					d_eng_no||'' 							"d_eng_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_eng 
+				where 1=1 
+				<include refid="boardWhere"/>
+				order by rate_cnt desc
+	</select>
+ -->
+	<!--==================================================-->		
+	<!-- [ 통합검색 영어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id="getDictListAllCnt_eng" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			select 
+				count(*) 	
+			from dict_eng 
+			where 1=1		
+			<include refid="boardWhere"/>
+	</select>	 -->
+	
+	<!--==================================================-->
+	<!-- 통합검색 일본어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!-- <select id='getDictList_jpn' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+	n행n열이라도 result타입지정을 한 행이 데이터가 저장되는 HashMap을 써주어야한다.
+	alias는 hashMap객체 안의 키값으로 저장된다.
+				 select						
+					d_jpn_no||'' 							"d_jpn_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_jpn 
+				where 1=1 
+				<include refid="boardWhere"/>					
+				order by rate_cnt desc 
+	</select> -->
+
+	<!--==================================================-->		
+	<!-- [ 통합검색 일본어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id="getDictListAllCnt_jpn" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			select 
+				count(*) 	
+			from dict_jpn 
+			where 1=1		
+			<include refid="boardWhere"/>
+	</select>	 -->
+	
+	<!--==================================================-->
+	<!-- 통합검색 중국어_게시판 검색 select 문을 내포한 select 태그 -->
+	<!--==================================================-->
+	<!-- <select id='getDictList_cn' parameterType="com.naver.erp.DictSearchDTO" resultType="java.util.HashMap" > 
+	
+	n행n열이라도 result타입지정을 한 행이 데이터가 저장되는 HashMap을 써주어야한다.
+	alias는 hashMap객체 안의 키값으로 저장된다.
+				select						
+					d_cn_no||'' 							"d_cn_no"
+					, word||'' 								"word"
+					, content||'' 							"content" 
+					, register||''							"register"
+					, to_char(input_date,'yyyy.mm.dd')||''  "input_date"
+					, readcount||''							"readcount"
+					, refer||''								"refer"
+					, rate_cnt||''							"rate_cnt"
+				from dict_cn 
+				where 1=1 
+				<include refid="boardWhere"/>
+				order by rate_cnt desc
+	</select> -->
+
+	<!--==================================================-->		
+	<!-- [ 통합검색 중국어_검색된 게시판 목록 총 개수] 리턴하는 select 태그 선언 -->
+	<!--==================================================-->
+	<!-- <select id="getDictListAllCnt_cn" parameterType="com.naver.erp.DictSearchDTO" resultType="int" >
+			select 
+				count(*) 	
+			from dict_cn 
+			where 1=1		
+			<include refid="boardWhere"/>
+	</select> -->	
